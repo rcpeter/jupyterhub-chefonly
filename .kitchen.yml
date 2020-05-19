@@ -1,0 +1,49 @@
+---
+driver:
+  name: vagrant
+
+provisioner:
+  name: chef_zero
+  product_name: chef
+  product_version: latest
+  channel: stable
+  install_strategy: once
+  always_update_cookbooks: true
+  #log_level: info
+
+verifier:
+  name: inspec
+
+platforms:
+  - name: centos-7
+
+suites:
+  - name: default
+    driver:
+      vm_hostname: jupyterhub
+      customize:
+        memory: 4096
+        cpus: 2
+        natdnshostresolver1: "on"
+      network:
+        - ["forwarded_port", {guest: 8000, host: 8000, auto_correct: true}]  # jupyterhub http
+        - ["forwarded_port", {guest: 8443, host: 8443, auto_correct: true}]  # jupyterhub https
+        - ["forwarded_port", {guest: 8081, host: 8081, auto_correct: true}]  # jupyterhub rest api
+    run_list:
+      - recipe[yum-epel]
+      - recipe[jupyterhub-chef::nodejs]
+      - recipe[jupyterhub-chef::python_python2]
+      - recipe[jupyterhub-chef::python_python3]
+      - recipe[jupyterhub-chef::python_virtualenv]
+      - recipe[jupyterhub-chef::anaconda]
+      - recipe[jupyterhub-chef::jupyterhub]
+      - recipe[jupyterhub-chef::jupyter]
+    verifier:
+      inspec_tests:
+        - test/integration/default
+    attributes:
+      dev_mode: true
+      jupyterhub:
+        config:
+          jupyterhub_config:
+            Spawner.notebook_dir: '~/'
