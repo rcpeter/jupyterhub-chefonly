@@ -1,0 +1,9 @@
+DEPENDENCIES
+  jupyterhub-chef
+    path: .
+    metadata: true
+  yum-epel
+
+GRAPH
+  jupyterhub-chef (3.0.0)
+  yum-epel (3.3.0)
